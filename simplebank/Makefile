@@ -5,6 +5,12 @@ createdb:
 dropdb:
 	docker exec -it postgres12 dropdb bank
 
+startdocker_db:
+	docker start postgres12
+
+stopdocker_db:
+	docker stop postgres12
+
 migrateup:
 	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/bank?sslmode=disable" -verbose up
 
@@ -18,4 +24,4 @@ test:
 	go test -v -cover ./...
 
 .PHONY: postgres createdb dropdb migrateup migratedown sqlc test
-
+.PHONY: startdocker_db stopdocker_db

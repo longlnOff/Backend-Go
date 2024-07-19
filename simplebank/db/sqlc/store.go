@@ -6,9 +6,18 @@ import (
 	"fmt"
 )
 
-type Store struct {
+/* This is called a 'composition' in Go. It is a way to embed a type into another type.
+And it is the preferred way to extend struct functionality in Golang instead of 'inheritance'.
+By embedding 'Queries' inside 'Store', all individual query functions provided by 'Queries' will be available to 'Store' */
+type SQLStore struct {
 	*Queries
 	db *sql.DB
+}
+
+type Store interface {
+	// TODO: add functions to this interface
+	Querier
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
 }
 
 type TransferTxParams struct {
@@ -25,8 +34,8 @@ type TransferTxResult struct {
 	FromEntry   Entry    `json:"from_entry"`
 	ToEntry     Entry    `json:"to_entry"`
 }
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		db:		db,
 		Queries: New(db),
 	}
@@ -61,12 +70,14 @@ func addMoney(
 	return
 }
 
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return err
 	}
 
+	// New function accepts a DBTX interface, so we can pass the transaction object to it
+	// Remeber, interface is a type that specifies a set of methods that a concrete type must have
 	q := New(tx)
 	err = fn(q)
 	if err != nil {
@@ -79,9 +90,13 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 	return tx.Commit()
 }
 
-func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
     var result TransferTxResult
 
+	// This makes the callback function become a 'closure'. 
+	// Since Go lacks support for generics type, closure is often used 
+	// when we want to get the result from a callback function, 
+	// because the callback function itself doesn’t know the exact type of the result it should return.
     err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 

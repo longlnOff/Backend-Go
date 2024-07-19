@@ -8,18 +8,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
-
+// writing database transaction is something we must always be very careful with.
+// It can be easy to write, but can also easily become a nightmare if we don’t handle the concurrency carefully.
+// So the best way to make sure that our transaction works well is to run it with several concurrent go routines.
+// -> We should test the function with concurrent go routine
 func TestTransferTx(t *testing.T) {
 	store := NewStore(testDB)
 	
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
-
 	n := 50
 	amount := int64(10)
 
 	// run n concurrent transfer transaction
+
+	// 1. create a channel to store the error
 	errs := make(chan error)
 	// results := make(chan TransferTxResult)
 	for i := 0; i < n; i++ {

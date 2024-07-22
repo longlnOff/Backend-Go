@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"simplebank/util"
 	"testing"
 	"time"
@@ -62,12 +61,13 @@ func TestListTransfer(t *testing.T) {
 	}
 
 	arg := ListTransfersParams{
+		FromAccountID: from_account.ID,
+		ToAccountID: to_account.ID,
 		Limit: 5,
 		Offset: 5,
 	}
 
 	transfers, err := testQueries.ListTransfers(context.Background(), arg)
-	fmt.Println(transfers)
 	require.NoError(t, err)
 	require.Len(t, transfers, 5)
 

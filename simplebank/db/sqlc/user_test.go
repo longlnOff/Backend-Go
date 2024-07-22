@@ -7,12 +7,39 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 )
 
+
+
+
+func TestPassword(t *testing.T) {
+	password := util.RandomString(6)
+
+	hashedPassword, err := util.HashPassword(password)
+	require.NoError(t, err)
+	require.NotEmpty(t, hashedPassword)
+
+	err = util.CheckPassword(password, hashedPassword)
+	require.NoError(t, err)
+
+	wrongPassword := util.RandomString(6)
+	err = util.CheckPassword(wrongPassword, hashedPassword)
+	require.EqualError(t, err, bcrypt.ErrMismatchedHashAndPassword.Error())
+
+	hashesPassword2, err := util.HashPassword(password)
+	require.NoError(t, err)
+	require.NotEmpty(t, hashedPassword)
+	require.NotEqual(t, hashedPassword, hashesPassword2)
+}
+
+
 func createRandomUser(t *testing.T) User {
+	hashedPassword, err := util.HashPassword(util.RandomString(6))
+	require.NoError(t, err)
 	arg := CreateUserParams{
 		Username:       util.RandomOwner(),
-		HashedPassword: "secret",
+		HashedPassword: hashedPassword,
 		FullName:       util.RandomOwner(),
 		Email:          util.RandomEmail(),
 	}

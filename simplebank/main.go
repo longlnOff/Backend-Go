@@ -7,12 +7,10 @@ import (
 	"simplebank/db/sqlc"
 	"simplebank/db/util"
 
-	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	gin.SetMode(gin.TestMode)
 	config, err := util.LoadConfig(".")
 	if err != nil {
 		log.Fatal("Cannot load config:", err)

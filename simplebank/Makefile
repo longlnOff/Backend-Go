@@ -30,7 +30,7 @@ test:
 	go test -v -cover ./...
 
 server:
-	go run main.go
+	go run -v main.go
 
 mock:
 	mockgen -destination db/mock/store.go -package mockdb simplebank/db/sqlc Store
